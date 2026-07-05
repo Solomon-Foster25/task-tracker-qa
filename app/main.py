@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi import HTTPException
 import psycopg
+import os
 from psycopg.rows import dict_row
 
 app = FastAPI()
 
 # host port you mapped in docker-compose (5432 if you took my suggestion, 8080 if you kept yours)
-DB_CONN = "host=localhost port=5432 dbname=taskdb user=Admin password=password123"
+DB_CONN = os.environ.get(
+    "DATABASE_URL",
+    "host=localhost port=5432 dbname=taskdb user=Admin password=password123",
+)
 
 @app.get("/health")
 def health():

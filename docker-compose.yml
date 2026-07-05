@@ -9,6 +9,13 @@ services:
       - "5432:5432" 
     volumes:
       - shared-volume:/var/lib/postgresql/data
-
+  app:
+    build: .
+    ports: 
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "host=db port=5432 dbname=taskdb user=Admin password=password123"
+    depends_on:
+      - db
 volumes:
   shared-volume: 
