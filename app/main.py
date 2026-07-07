@@ -57,7 +57,7 @@ def create_task(task: TaskCreate):
                 (task.title, task.body, task.user_id, task.status),
             )
             new_id, created_at = cur.fetchone()
-    return {"id": new_id, "title": task.title, "status": task.status, "created_at": created_at}
+    return {"id": new_id, "title": task.title, "body":task.body, "user_id": task.user_id, "status": task.status, "created_at": created_at}
 
 # get a task by ID
 
