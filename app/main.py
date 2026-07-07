@@ -4,6 +4,7 @@ from fastapi import HTTPException
 import psycopg
 import os
 from psycopg.rows import dict_row
+from psycopg import errors
 
 app = FastAPI()
 
@@ -29,14 +30,17 @@ class UserCreate(BaseModel):
     
 @app.post("/users", status_code=201)
 def create_user(user: UserCreate):
-    with psycopg.connect(DB_CONN) as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO users (username, email) "
-                "VALUES (%s, %s) RETURNING id, created_at",
-                (user.username, user.email),
-            )
-            new_id, created_at = cur.fetchone()
+    try:
+        with psycopg.connect(DB_CONN) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO users (username, email) "
+                    "VALUES (%s, %s) RETURNING id, created_at",
+                    (user.username, user.email),
+                )
+                new_id, created_at = cur.fetchone()
+    except errors.UniqueViolation:
+        raise HTTPException(status_code=409, detail="username or email already exists")
     return {"id": new_id, "username": user.username, "email": user.email, "created_at": created_at}
 
 # Create a task
@@ -49,14 +53,17 @@ class TaskCreate(BaseModel):
 
 @app.post("/tasks", status_code=201)
 def create_task(task: TaskCreate):
-    with psycopg.connect(DB_CONN) as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO tasks (title, body, user_id, status) "
-                "VALUES (%s, %s, %s, %s) RETURNING id, created_at",
-                (task.title, task.body, task.user_id, task.status),
-            )
-            new_id, created_at = cur.fetchone()
+    try:
+        with psycopg.connect(DB_CONN) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO tasks (title, body, user_id, status) "
+                    "VALUES (%s, %s, %s, %s) RETURNING id, created_at",
+                    (task.title, task.body, task.user_id, task.status),
+                )
+                new_id, created_at = cur.fetchone()
+    except errors.ForeignKeyViolation:
+        raise HTTPException(status_code=404, detail="user_id not found")
     return {"id": new_id, "title": task.title, "body":task.body, "user_id": task.user_id, "status": task.status, "created_at": created_at}
 
 # get a task by ID
