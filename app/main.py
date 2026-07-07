@@ -64,6 +64,8 @@ def create_task(task: TaskCreate):
                 new_id, created_at = cur.fetchone()
     except errors.ForeignKeyViolation:
         raise HTTPException(status_code=404, detail="user_id not found")
+    except errors.CheckViolation:
+        raise HTTPException(status_code=400, detail="invalid status: must be todo, in_progress, or done")
     return {"id": new_id, "title": task.title, "body":task.body, "user_id": task.user_id, "status": task.status, "created_at": created_at}
 
 # get a task by ID
